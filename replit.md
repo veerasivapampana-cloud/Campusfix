@@ -1,6 +1,6 @@
-# [Project name]
+# CampusFix
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+CampusFix helps students report campus problems, administrators route urgent work, and maintenance teams resolve issues with a clear audit trail.
 
 ## Run & Operate
 
@@ -22,15 +22,22 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/campusfix` — student, admin, staff, analytics, credits, and notification web app
+- `artifacts/api-server/src/routes/campusfix.ts` — CampusFix API endpoints
+- `artifacts/api-server/src/lib/campusfix.ts` — deterministic triage, seed data, and read models
+- `lib/db/src/schema/campusfix.ts` — PostgreSQL schema
+- `lib/api-spec/openapi.yaml` — API contract; regenerate clients with the command above
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Classification uses deterministic campus safety rules and needs no third-party AI key.
+- The role switcher uses demo accounts for walkthroughs; it is not an authentication boundary.
+- Issue, timeline, notification, and credits data persist in the project's PostgreSQL database.
+- Frontend API calls and server validation share the OpenAPI-generated contract.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Students can report and track issues, earn campus credits, and receive updates. Administrators prioritize and assign tickets across departments. Maintenance staff update work status and resolution notes. Analytics summarize category overlap, hotspots, and department outcomes.
 
 ## User preferences
 

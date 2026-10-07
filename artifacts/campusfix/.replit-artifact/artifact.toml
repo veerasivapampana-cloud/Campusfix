@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "CampusFix"
+description = "An AI-assisted campus issue management app for students to report hazards, administrators to prioritize and route work, and maintenance teams to resolve and verify issues."
+version = "1.0.0"
+id = "artifacts/campusfix"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24654
+
+[services.development]
+run = "pnpm --filter @workspace/campusfix run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/campusfix", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/campusfix/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24654"
+BASE_PATH = "/"

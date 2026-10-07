@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: campusfix
+    description: CampusFix campus operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,229 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /campusfix/users:
+    get:
+      operationId: listCampusUsers
+      tags: [campusfix]
+      summary: List demo users and role accounts
+      responses:
+        "200":
+          description: Demo users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CampusUser"
+  /campusfix/issues:
+    get:
+      operationId: listCampusIssues
+      tags: [campusfix]
+      summary: List campus issues by priority score
+      responses:
+        "200":
+          description: Issues ordered by priority
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CampusIssue"
+    post:
+      operationId: createCampusIssue
+      tags: [campusfix]
+      summary: Submit a campus issue and award reporting credits
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampusIssueInput"
+      responses:
+        "201":
+          description: Created issue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampusIssue"
+        "400":
+          description: Invalid issue details
+  /campusfix/issues/{issueId}/timeline:
+    get:
+      operationId: getCampusIssueTimeline
+      tags: [campusfix]
+      summary: Get the event timeline for an issue
+      parameters:
+        - in: path
+          name: issueId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Issue timeline
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IssueTimelineEntry"
+        "404":
+          description: Issue not found
+  /campusfix/issues/{issueId}/assign:
+    post:
+      operationId: assignCampusIssue
+      tags: [campusfix]
+      summary: Assign an issue to a maintenance team
+      parameters:
+        - in: path
+          name: issueId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IssueAssignmentInput"
+      responses:
+        "200":
+          description: Updated assignment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampusIssue"
+        "404":
+          description: Issue or staff member not found
+  /campusfix/issues/{issueId}/status:
+    post:
+      operationId: updateCampusIssueStatus
+      tags: [campusfix]
+      summary: Update issue status, add a work note, or resolve it
+      parameters:
+        - in: path
+          name: issueId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IssueStatusInput"
+      responses:
+        "200":
+          description: Updated issue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampusIssue"
+        "404":
+          description: Issue not found
+  /campusfix/analyze:
+    post:
+      operationId: analyzeCampusIssue
+      tags: [campusfix]
+      summary: Analyze issue text using deterministic campus safety rules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IssueAnalysisInput"
+      responses:
+        "200":
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IssueAnalysis"
+  /campusfix/overview:
+    get:
+      operationId: getCampusOverview
+      tags: [campusfix]
+      summary: Get current operational KPIs
+      responses:
+        "200":
+          description: Campus overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampusOverview"
+  /campusfix/analytics:
+    get:
+      operationId: getCampusAnalytics
+      tags: [campusfix]
+      summary: Get campus hotspots and department resolution analytics
+      responses:
+        "200":
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampusAnalytics"
+  /campusfix/credits/{userId}:
+    get:
+      operationId: getCampusCredits
+      tags: [campusfix]
+      summary: Get a student's credits, badges, and activity
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Student credit profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditProfile"
+        "404":
+          description: Student not found
+  /campusfix/notifications/{userId}:
+    get:
+      operationId: listCampusNotifications
+      tags: [campusfix]
+      summary: List notifications for a demo user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CampusNotification"
+  /campusfix/notifications/{notificationId}/read:
+    patch:
+      operationId: markCampusNotificationRead
+      tags: [campusfix]
+      summary: Mark a notification as read
+      parameters:
+        - in: path
+          name: notificationId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampusNotification"
+        "404":
+          description: Notification not found
 components:
   schemas:
     HealthStatus:
@@ -33,4 +258,202 @@ components:
           type: string
       required:
         - status
+    CampusUser:
+      type: object
+      required: [id, name, email, role, department, creditsBalance]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [student, admin, staff] }
+        department: { type: ["string", "null"] }
+        creditsBalance: { type: integer }
+    IssueAnalysisInput:
+      type: object
+      required: [description, location]
+      properties:
+        description: { type: string, minLength: 1 }
+        location: { type: string, minLength: 1 }
+    IssueAnalysis:
+      type: object
+      required: [primaryCategory, secondaryCategory, additionalCategories, severity, priority, priorityScore, safetyRisk, primaryDepartment, supportingDepartments, suggestedAction, aiSummary, aiReasoning]
+      properties:
+        primaryCategory: { type: string }
+        secondaryCategory: { type: ["string", "null"] }
+        additionalCategories:
+          type: array
+          items: { type: string }
+        severity: { type: string, enum: [Low, Medium, High, Critical] }
+        priority: { type: string, enum: [P1, P2, P3, P4] }
+        priorityScore: { type: integer, minimum: 0, maximum: 100 }
+        safetyRisk: { type: string }
+        primaryDepartment: { type: string }
+        supportingDepartments:
+          type: array
+          items: { type: string }
+        suggestedAction: { type: string }
+        aiSummary: { type: string }
+        aiReasoning:
+          type: array
+          items: { type: string }
+    CampusIssueInput:
+      type: object
+      required: [description, location, reporterId]
+      properties:
+        title: { type: string }
+        description: { type: string, minLength: 1 }
+        location: { type: string, minLength: 1 }
+        reporterId: { type: integer }
+        imageUrl: { type: ["string", "null"] }
+    IssueAssignmentInput:
+      type: object
+      required: [staffId, primaryDepartment, supportingDepartments, notifySupporting]
+      properties:
+        staffId: { type: integer }
+        primaryDepartment: { type: string }
+        supportingDepartments:
+          type: array
+          items: { type: string }
+        notifySupporting: { type: boolean }
+    IssueStatusInput:
+      type: object
+      required: [status, note, resolutionImageUrl]
+      properties:
+        status: { type: string, enum: [In Progress, Resolved, Verified] }
+        note: { type: string }
+        resolutionImageUrl: { type: ["string", "null"] }
+    CampusIssue:
+      type: object
+      required: [id, ticketId, title, description, imageUrl, location, primaryCategory, secondaryCategory, additionalCategories, severity, priority, priorityScore, safetyRisk, suggestedAction, aiSummary, aiReasoning, reporterId, reporterName, assignedStaffId, assignedStaffName, primaryDepartment, supportingDepartments, status, resolutionNotes, resolutionImageUrl, resolvedAt, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        ticketId: { type: string }
+        title: { type: string }
+        description: { type: string }
+        imageUrl: { type: ["string", "null"] }
+        location: { type: string }
+        primaryCategory: { type: string }
+        secondaryCategory: { type: ["string", "null"] }
+        additionalCategories:
+          type: array
+          items: { type: string }
+        severity: { type: string, enum: [Low, Medium, High, Critical] }
+        priority: { type: string, enum: [P1, P2, P3, P4] }
+        priorityScore: { type: integer }
+        safetyRisk: { type: string }
+        suggestedAction: { type: string }
+        aiSummary: { type: string }
+        aiReasoning:
+          type: array
+          items: { type: string }
+        reporterId: { type: integer }
+        reporterName: { type: string }
+        assignedStaffId: { type: ["integer", "null"] }
+        assignedStaffName: { type: ["string", "null"] }
+        primaryDepartment: { type: string }
+        supportingDepartments:
+          type: array
+          items: { type: string }
+        status: { type: string, enum: [Reported, AI Analyzed, Assigned, In Progress, Resolved, Verified] }
+        resolutionNotes: { type: ["string", "null"] }
+        resolutionImageUrl: { type: ["string", "null"] }
+        resolvedAt: { type: ["string", "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    IssueTimelineEntry:
+      type: object
+      required: [id, status, note, actorName, timestamp]
+      properties:
+        id: { type: integer }
+        status: { type: string }
+        note: { type: string }
+        actorName: { type: string }
+        timestamp: { type: string, format: date-time }
+    CampusNotification:
+      type: object
+      required: [id, userId, title, message, type, read, createdAt]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        title: { type: string }
+        message: { type: string }
+        type: { type: string, enum: [status_change, credits, assignment] }
+        read: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    CampusOverview:
+      type: object
+      required: [totalIssues, activeP1, unassigned, resolutionRate, averageTriageMinutes, hotspotOfDay]
+      properties:
+        totalIssues: { type: integer }
+        activeP1: { type: integer }
+        unassigned: { type: integer }
+        resolutionRate: { type: integer }
+        averageTriageMinutes: { type: integer }
+        hotspotOfDay: { type: string }
+    CategoryAnalytics:
+      type: object
+      required: [name, count, overlapCount]
+      properties:
+        name: { type: string }
+        count: { type: integer }
+        overlapCount: { type: integer }
+    HotspotAnalytics:
+      type: object
+      required: [location, reports, aboveCampusMean, focus]
+      properties:
+        location: { type: string }
+        reports: { type: integer }
+        aboveCampusMean: { type: integer }
+        focus: { type: string }
+    DepartmentAnalytics:
+      type: object
+      required: [name, total, resolved, averageResolutionHours]
+      properties:
+        name: { type: string }
+        total: { type: integer }
+        resolved: { type: integer }
+        averageResolutionHours: { type: number }
+    CampusAnalytics:
+      type: object
+      required: [categories, hotspots, departments, recommendation]
+      properties:
+        categories:
+          type: array
+          items: { $ref: "#/components/schemas/CategoryAnalytics" }
+        hotspots:
+          type: array
+          items: { $ref: "#/components/schemas/HotspotAnalytics" }
+        departments:
+          type: array
+          items: { $ref: "#/components/schemas/DepartmentAnalytics" }
+        recommendation: { type: string }
+    CreditBadge:
+      type: object
+      required: [name, description, icon, awarded]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        icon: { type: string }
+        awarded: { type: boolean }
+    CreditActivity:
+      type: object
+      required: [id, points, description, createdAt]
+      properties:
+        id: { type: integer }
+        points: { type: integer }
+        description: { type: string }
+        createdAt: { type: string, format: date-time }
+    CreditProfile:
+      type: object
+      required: [userName, balance, tier, badges, activity]
+      properties:
+        userName: { type: string }
+        balance: { type: integer }
+        tier: { type: string }
+        badges:
+          type: array
+          items: { $ref: "#/components/schemas/CreditBadge" }
+        activity:
+          type: array
+          items: { $ref: "#/components/schemas/CreditActivity" }
 
